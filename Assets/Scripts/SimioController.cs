@@ -40,8 +40,6 @@ public class SimioController : MonoBehaviour {
     private bool[] isRayHit;
 
 
-    
-    // Use this for initialization
     private bool isGrounded = false;
     private bool isWalled = false;
     void Start () {
@@ -51,7 +49,6 @@ public class SimioController : MonoBehaviour {
         camera = GameObject.Find("Main Camera");
 
         discCastNum = discCastNum % 2 == 0 ? discCastNum / 2 : (discCastNum + 1) / 2;
-        Debug.Log(discCastNum);
         discHeight = charController.height / 2;
         discRays = new Vector3[discCastNum];
         rayHits = new RaycastHit[discCastNum*2];
@@ -67,7 +64,6 @@ public class SimioController : MonoBehaviour {
         StartCoroutine(blinkCoroutine);
     }
 
-    // Update is called once per frame
     private Vector3 camPlayerVector;
     private Vector3 discCastOrigin;
 #if DEBUG
@@ -80,37 +76,18 @@ public class SimioController : MonoBehaviour {
         move();
         onParalelWalls = false;
 #if DEBUG
-        Debug.Log("________");
+        Debug.Log("-________-");
 #endif
-        /*
 
 #if DEBUG
         timeStamp = Time.realtimeSinceStartup;
 #endif
-        checkParalelWalls();
-#if DEBUG
-        lateTimeStamp = Time.realtimeSinceStartup;
-        Debug.Log(lateTimeStamp - timeStamp);
-#endif        */
-#if DEBUG
-        timeStamp = Time.realtimeSinceStartup;
-#endif
-        checkParalelWalls();
+        checkParaWall(paraWallRayLength);
 #if DEBUG
         lateTimeStamp = Time.realtimeSinceStartup;
         Debug.Log(lateTimeStamp - timeStamp);
 #endif
-        /*
-        timeStamp = Time.realtimeSinceStartup;
-        checkParalelWalls3();
-        lateTimeStamp = Time.realtimeSinceStartup;
-        Debug.Log(lateTimeStamp - timeStamp);
         
-        */
-#if DEBUG
-        Debug.Log(hitedPreviousRay + " - " + onParalelWalls);
-#endif
-        //hitedPreviousRay
     }
 
     void move() {
@@ -158,7 +135,6 @@ public class SimioController : MonoBehaviour {
         if (isGrounded && Input.GetButtonDown("Jump")) {
             upSpd = jumpSpd;
             anim.Play("Jump", 0);
-            //anim.SetTrigger("jumping");
         }
     }
 
@@ -167,58 +143,16 @@ public class SimioController : MonoBehaviour {
     Quaternion nineDeg = Quaternion.Euler(0, 90, 0);
     Vector3 perpDir;
     Vector3 perpStart;
-    void checkParalelWalls() {
-
-        discCast(4);
-        //Vector3 castOrigin = transform.position + (Vector3.up * discHeight);
-#if DEBUG
-        Debug.DrawRay(perpStart, perpDir,Color.cyan);
-        Debug.DrawRay(perpStart, -perpDir, Color.black);
-#endif
-        //Debug.Log(onParalelWalls);
-
-    }
-
-    void calcParaWallDirection() {
-        parallelPoints[0].y = 0;
-        parallelPoints[1].y = 0;
-        camPlayerVector.y = 0;
-        perpDir = (parallelPoints[0] - parallelPoints[1]);
-        perpDir = nineDeg * perpDir;
-
-        perpStart = (parallelPoints[0] + parallelPoints[1]) / 2;
-
-        if (Vector3.Angle(camPlayerVector, perpDir) > Vector3.Angle(camPlayerVector, perpDir * -1)) {
-            perpDir *= -1;
-        }
-    }
-
-    bool hitedPreviousRay = false;
-    RaycastHit hit;
-    Vector3 otherNormal;
-
-    int indexOne;
-    int indexTwo;
-    int previousValidRayIndex;
-    Vector3[] parallelPoints = new Vector3[2];
-    object[] paraWallDataPack = new object[3];
-    void sendParaWallMessage( bool onPW) {
-        paraWallDataPack[0] = onPW;
-        if (onPW) {
-            paraWallDataPack[1] = perpStart;
-            paraWallDataPack[2] = perpDir;
-        }
-        camera.SendMessage("onParallelWalls", paraWallDataPack);
-    }
-    void discCast(float maxDistance) {
+    public float paraWallRayLength = 4;
+    void checkParaWall(float maxDistance) {
 
         if (hitedPreviousRay) {
-            if (previousValidRayIndex < 0) { 
+            if (previousValidRayIndex < 0) {
                 if (Physics.Raycast(discCastOrigin, -discRays[-previousValidRayIndex], out hit, maxDistance, mask.value)) {
                     if (hit.normal != otherNormal) {
                         otherNormal = hit.normal;
                         parallelPoints[0] = hit.point;
-                        if (Physics.Raycast(hit.point, hit.normal,out hit, maxDistance*2, mask.value)) {
+                        if (Physics.Raycast(hit.point, hit.normal, out hit, maxDistance * 2, mask.value)) {
                             float angleDiff = Vector3.Angle(otherNormal, hit.normal);
                             if (angleDiff > 175 && angleDiff < 185) {
                                 parallelPoints[1] = hit.point;
@@ -306,7 +240,7 @@ public class SimioController : MonoBehaviour {
 #endif
                     if (Physics.Raycast(hit.point, hit.normal, out hit, maxDistance * 2, mask.value)) {
 #if DEBUG
-                        Debug.DrawLine(hit.point, hit.point+hit.normal, Color.blue);
+                        Debug.DrawLine(hit.point, hit.point + hit.normal, Color.blue);
 #endif
                         float angleDiff = Vector3.Angle(otherNormal, hit.normal);
                         if (angleDiff > 175 && angleDiff < 185) {
@@ -327,11 +261,11 @@ public class SimioController : MonoBehaviour {
                         otherNormal = hit.normal;
                         parallelPoints[0] = hit.point;
 #if DEBUG
-                        Debug.DrawLine(hit.point, hit.point + (hit.normal * maxDistance * 2),Color.red);
+                        Debug.DrawLine(hit.point, hit.point + (hit.normal * maxDistance * 2), Color.red);
 #endif
                         if (Physics.Raycast(hit.point, hit.normal, out hit, maxDistance * 2, mask.value)) {
 #if DEBUG
-                            Debug.DrawLine(hit.point, hit.point+hit.normal, Color.blue);
+                            Debug.DrawLine(hit.point, hit.point + hit.normal, Color.blue);
 #endif
                             float angleDiff = Vector3.Angle(otherNormal, hit.normal);
                             if (angleDiff > 175 && angleDiff < 185) {
@@ -346,10 +280,39 @@ public class SimioController : MonoBehaviour {
                     }
                 }
             }
-            // isRayHit[a] = charController.Raycast(new Ray(castOrigin, discRays[a].direction),out rayHits[a],maxDistance);
-            //Debug.DrawLine(castOrigin, castOrigin + (discRays[a] * maxDistance));
-            //Debug.DrawLine(castOrigin, castOrigin + (-discRays[a] * maxDistance));
         }
+    }
+
+    void calcParaWallDirection() {
+        parallelPoints[0].y = 0;
+        parallelPoints[1].y = 0;
+        camPlayerVector.y = 0;
+        perpDir = (parallelPoints[0] - parallelPoints[1]);
+        perpDir = nineDeg * perpDir;
+
+        perpStart = (parallelPoints[0] + parallelPoints[1]) / 2;
+
+        if (Vector3.Angle(camPlayerVector, perpDir) > Vector3.Angle(camPlayerVector, perpDir * -1)) {
+            perpDir *= -1;
+        }
+    }
+
+    bool hitedPreviousRay = false;
+    RaycastHit hit;
+    Vector3 otherNormal;
+
+    int indexOne;
+    int indexTwo;
+    int previousValidRayIndex;
+    Vector3[] parallelPoints = new Vector3[2];
+    object[] paraWallDataPack = new object[3];
+    void sendParaWallMessage( bool onPW) {
+        paraWallDataPack[0] = onPW;
+        if (onPW) {
+            paraWallDataPack[1] = perpStart;
+            paraWallDataPack[2] = perpDir;
+        }
+        camera.SendMessage("onParallelWalls", paraWallDataPack);
     }
 
     public static float Angle(Vector3 p_vector2) {
@@ -364,8 +327,6 @@ public class SimioController : MonoBehaviour {
     private IEnumerator Blinking() {
         while (true) {
             yield return new WaitForSeconds(UnityEngine.Random.Range(3, 6));
-            //anim.Play("Blink",1);
-            //anim.CrossFade("Blink",0, 1);
             anim.SetTrigger("blink");
 #if DEBUG
             Debug.LogWarning("blink!!");
