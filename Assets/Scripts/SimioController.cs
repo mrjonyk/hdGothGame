@@ -27,7 +27,7 @@ public class SimioController : MonoBehaviour {
     private Quaternion lookRot;
     public float rotateSpeed = 400;
 
-    public float gravity = -0.15f;
+    public float gravity = -5f;
     public float jumpSpd = 1.2f;
 
     public bool onParalelWalls = false;
@@ -77,7 +77,7 @@ public class SimioController : MonoBehaviour {
     void Update () {
         discCastOrigin = transform.position + (Vector3.up * discHeight);
         camPlayerVector = transform.position - camera.transform.position;
-        move2();
+        move();
         onParalelWalls = false;
 #if DEBUG
         Debug.Log("________");
@@ -95,7 +95,7 @@ public class SimioController : MonoBehaviour {
 #if DEBUG
         timeStamp = Time.realtimeSinceStartup;
 #endif
-        checkParalelWalls2();
+        checkParalelWalls();
 #if DEBUG
         lateTimeStamp = Time.realtimeSinceStartup;
         Debug.Log(lateTimeStamp - timeStamp);
@@ -113,8 +113,7 @@ public class SimioController : MonoBehaviour {
         //hitedPreviousRay
     }
 
-    void move1() {
-
+    void move() {
         hSpd = Input.GetAxis("Horizontal");
         vSpd = Input.GetAxis("Vertical");
         Vector2 camForward = new Vector2(camera.transform.forward.x, camera.transform.forward.z);
@@ -140,51 +139,9 @@ public class SimioController : MonoBehaviour {
             anim.SetBool("walking", false);
             anim.SetBool("running", false);
         }
-
-        if (!isGrounded) {
-            upSpd += gravity;
-        }
-        movement.y = upSpd;
-        isGrounded = false;
-        transform.rotation = lookRot;
-        charController.Move(movement*Time.deltaTime*speed);
-
-        if (isGrounded && Input.GetButtonDown("Jump")) {
-            upSpd = jumpSpd;
-        }
-    }
-
-    void move2() {
-        hSpd = Input.GetAxis("Horizontal");
-        vSpd = Input.GetAxis("Vertical");
-        Vector2 camForward = new Vector2(camera.transform.forward.x, camera.transform.forward.z);
-        Vector2 camRight = new Vector2(camera.transform.right.x, camera.transform.right.z);
-#if NORMALIZED
-        camForward.Normalize();
-        camRight.Normalize();
-#endif
-        movement = new Vector3((camForward.x * vSpd) + (camRight.x * hSpd), 0f, (camForward.y * vSpd) + (camRight.y * hSpd));
-        float magnitude = movement.magnitude;
-
-        if (magnitude > 0) {
-            lookRot = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, Angle(movement), 0), rotateSpeed * Time.deltaTime);
-            anim.SetBool("walking", true);
-            if (magnitude > walkLimit) {
-                anim.SetBool("running", true);
-            }
-            else {
-                anim.SetBool("running", false);
-            }
-        }
-        else {
-            anim.SetBool("walking", false);
-            anim.SetBool("running", false);
-        }
-        Debug.Log(isGrounded);
         if (!isGrounded) {
 
             Debug.Log(anim.GetCurrentAnimatorStateInfo(0).length);
-            Debug.Log("anything");
             if (isWalled) {
                 upSpd += (gravity/2) * Time.deltaTime;
             }
@@ -209,48 +166,10 @@ public class SimioController : MonoBehaviour {
     public Vector3 backWallNormal;
     Quaternion nineDeg = Quaternion.Euler(0, 90, 0);
     Vector3 perpDir;
+    Vector3 perpStart;
     void checkParalelWalls() {
 
         discCast(4);
-
-        for (int a = 0; a < discCastNum; a++) {
-
-            int indexOne = a * 2;
-            int indexTwo = (a * 2) + 1;
-
-            if (isRayHit[indexOne] && isRayHit[indexTwo]) {
-                float angleDiff = Vector3.Angle(rayHits[indexOne].normal, rayHits[indexTwo].normal);
-                if (angleDiff > 175 && angleDiff < 185) {
-                    onParalelWalls = true;
-                    parallelWallsPoint[0] = rayHits[indexOne].point;
-                    parallelWallsPoint[1] = rayHits[indexTwo].point;
-
-                    parallelWallsPoint[0].y = 0;
-                    parallelWallsPoint[1].y = 0;
-
-                    perpDir = (parallelWallsPoint[0] - parallelWallsPoint[1]);
-                    perpDir = nineDeg * perpDir;
-
-                    if (Vector3.Angle(camPlayerVector, perpDir) > Vector3.Angle(camPlayerVector, perpDir * -1)) {
-
-                        perpDir *= -1;
-                    }
-                    Debug.DrawRay(((rayHits[indexOne].point + rayHits[indexTwo].point) / 2) + Vector3.up * discHeight, perpDir);
-
-                    break;
-
-                }
-            }
-            if (onParalelWalls)
-                break;
-        }
-        //Debug.Log(onParalelWalls);
-
-    }
-    Vector3 perpStart;
-    void checkParalelWalls2() {
-
-        discCast2(4);
         //Vector3 castOrigin = transform.position + (Vector3.up * discHeight);
 #if DEBUG
         Debug.DrawRay(perpStart, perpDir,Color.cyan);
@@ -274,22 +193,6 @@ public class SimioController : MonoBehaviour {
         }
     }
 
-    void discCast(float maxDistance) {
-        Vector3 castOrigin = transform.position + (Vector3.up * discHeight);
-
-        for (int a=0; a < discCastNum; a++) {
-            int indexOne = a * 2;
-            int indexTwo = (a * 2) + 1;
-
-            isRayHit[indexOne] = Physics.Raycast(castOrigin, discRays[a], out rayHits[indexOne], maxDistance, mask.value);
-            isRayHit[indexTwo] = Physics.Raycast(castOrigin, -discRays[a], out rayHits[indexTwo], maxDistance, mask.value);
-
-            // isRayHit[a] = charController.Raycast(new Ray(castOrigin, discRays[a].direction),out rayHits[a],maxDistance);
-            Debug.DrawLine(castOrigin, castOrigin + (discRays[a] * maxDistance));
-            Debug.DrawLine(castOrigin, castOrigin + (-discRays[a] * maxDistance));
-        }
-    }
-
     bool hitedPreviousRay = false;
     RaycastHit hit;
     Vector3 otherNormal;
@@ -307,7 +210,7 @@ public class SimioController : MonoBehaviour {
         }
         camera.SendMessage("onParallelWalls", paraWallDataPack);
     }
-    void discCast2(float maxDistance) {
+    void discCast(float maxDistance) {
 
         if (hitedPreviousRay) {
             if (previousValidRayIndex < 0) { 
