@@ -30,7 +30,7 @@ public class SimioController : MonoBehaviour {
     public float gravity = -3f;
     public float wallGravityReduction = 0.2f;
     private float onWallGravity;
-    private float wallSlideSpd = 2;
+    public float wallSlideSpd = -0.2f;
     public float jumpSpd = 1.2f;
 
     public bool onParalelWalls = false;
@@ -125,22 +125,43 @@ public class SimioController : MonoBehaviour {
         //Debug.Log(anim.GetCurrentAnimatorStateInfo(0).length);
 
         if (!isGrounded) {
-            if (isWalled) {
-                currentGravity = onWallGravity;
+            if (isWalled && upSpd < 0) {
+                currentGravity = 0;
+                upSpd = wallSlideSpd;
                 lookRot = Quaternion.LookRotation(-wallNormal, Vector3.up);
             }
             else {
                 currentGravity = gravity;
             }
         }
+        else {
+            currentGravity = gravity;
+        }
         upSpd += currentGravity* Time.deltaTime;
 
+        transform.rotation = lookRot;
+
+        Vector3 wallJumpDir = new Vector3(-wallNormal.x, 0, -wallNormal.z);
+        Debug.Log("wallJump:" + isWallJump);
+        if (isWallJump) {
+            if (isWalled) {
+                upSpd = wallJumpSpd;
+                wallJumpVector = wallJumpDir * wallJumpSpd;
+            }
+            else {
+                if (new Vector3(wallJumpVector.x, 0, wallJumpVector.z).magnitude > 0) {
+                    wallJumpVector -= wallJumpDir;
+                }
+                else {
+                    isWallJump = false;
+                    wallJumpVector = Vector3.zero;
+                }
+            }
+        }
 
         isGrounded = false;
         isWalled = false;
-        transform.rotation = lookRot;
-
-        charController.Move(new Vector3(transform.forward.x* magnitude, upSpd, transform.forward.z* magnitude) * Time.deltaTime * speed);
+        charController.Move((new Vector3(transform.forward.x* magnitude, upSpd, transform.forward.z* magnitude)+ wallJumpVector) * Time.deltaTime * speed);
 
         Debug.Log("gnd:"+isGrounded+" wll:"+isWalled);
         if (Input.GetButtonDown("Jump")) {
@@ -150,14 +171,19 @@ public class SimioController : MonoBehaviour {
             }
             else {
                 if (isWalled) {
-                    wallJumpSpd = 10;
+                    isWallJump = true;
+                }
+                else {
+                    isWallJump = false;
                 }
             }
         }
 
         Debug.Log(upSpd);
     }
-    private float wallJumpSpd = 0;
+    private bool isWallJump = false;
+    private Vector3 wallJumpVector = Vector3.zero;
+    public float wallJumpSpd = 1;
     private Vector3 wallNormal;
 
     public Vector3[] parallelWallsPoint = new Vector3[2];
@@ -361,13 +387,13 @@ public class SimioController : MonoBehaviour {
             isGrounded = true;
             upSpd = 0;
             currentFloorNormal = hit.normal;
-            Debug.LogWarning("grounded!!");
+            //Debug.LogWarning("grounded!!");
         }
 
         if (hitAngle > 90-wallAngleTolerance && hitAngle < 90 + wallAngleTolerance) {
             isWalled = true;
             wallNormal = hit.normal;
-            Debug.LogWarning("onWall!!");
+            //Debug.LogWarning("onWall!!");
         }
     }
 }

@@ -36,7 +36,7 @@ public class CamController : MonoBehaviour {
     }
     void camMove1() {
         nextPosition = Vector3.MoveTowards(transform.position, player.transform.position, (Vector3.Distance(transform.position, player.transform.position) - backDistance * 1.5f) * Time.deltaTime);
-        nextPosition.y = upDistance;
+        nextPosition.y = player.transform.position.y + upDistance;
         transform.position = nextPosition;
     }
 
