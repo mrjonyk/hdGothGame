@@ -9,6 +9,7 @@ using UnityEngine;
 
 public class SimioController : MonoBehaviour {
     public LayerMask mask = -1;
+
     private Animator anim;
     private GameObject camera;
     private CharacterController charController;
@@ -27,11 +28,11 @@ public class SimioController : MonoBehaviour {
     private Quaternion lookRot;
     public float rotateSpeed = 400;
 
-    public float gravity = -3f;
+    public float gravity = -3.5f;
     public float wallGravityReduction = 0.2f;
     private float onWallGravity;
     public float wallSlideSpd = -0.2f;
-    public float jumpSpd = 1.2f;
+    public float jumpSpd = 1.5f;
 
     public bool onParalelWalls = false;
 
@@ -95,6 +96,127 @@ public class SimioController : MonoBehaviour {
         
     }
     private float currentGravity;
+    public float moveAcc = 0.1f;
+    private Vector2 finalMove = Vector2.zero;
+    void move2() {
+        hSpd = Input.GetAxis("Horizontal");
+        vSpd = Input.GetAxis("Vertical");
+        Vector2 camForward = new Vector2(camera.transform.forward.x, camera.transform.forward.z);
+        Vector2 camRight = new Vector2(camera.transform.right.x, camera.transform.right.z);
+#if NORMALIZED
+        camForward.Normalize();
+        camRight.Normalize();
+#endif
+
+        if (hSpd == 0) {
+            if (finalMove.x != 0) { 
+                float sign = Mathf.Sign(finalMove.x);
+                finalMove.x -= moveAcc * sign;
+                if (Mathf.Sign(finalMove.x) != sign) {
+                    finalMove.x = 0;
+                }
+            }
+        }
+        else {
+            if (hSpd < 0) {
+                if(finalMove.x > hSpd) {
+                    finalMove.x += hSpd * moveAcc* Time.deltaTime;
+                }
+                else {
+                    finalMove.x = hSpd;
+                }
+            }
+            else {
+                if (finalMove.x < hSpd) {
+                    finalMove.x += hSpd * moveAcc * Time.deltaTime;
+                }
+                else {
+                    finalMove.x = hSpd;
+                }
+            }
+        }
+
+        if (vSpd == 0){
+            if(finalMove.y != 0) {
+                float sign = Mathf.Sign(finalMove.y);
+                finalMove.y -= moveAcc * sign;
+                if (Mathf.Sign(finalMove.y) != sign) {
+                    finalMove.y = 0;
+                }
+            }
+        }
+        else {
+            if (vSpd < 0) {
+                if (finalMove.y > vSpd) {
+                    finalMove.y += vSpd * moveAcc * Time.deltaTime;
+                }
+                else {
+                    finalMove.y = vSpd;
+                }
+            }
+            else {
+                if (finalMove.y < vSpd) {
+                    finalMove.y += vSpd * moveAcc * Time.deltaTime;
+                }
+                else {
+                    finalMove.y = vSpd;
+                }
+            }
+        }
+
+        movement = new Vector3((camForward.x * finalMove.y) + (camRight.x * finalMove.x), 0f, (camForward.y * finalMove.y) + (camRight.y * finalMove.x));
+        float magnitude = movement.magnitude;
+
+        if (magnitude > 0) {
+            lookRot = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, Angle(movement), 0), rotateSpeed * Time.deltaTime);
+        }
+
+        //Debug.Log(anim.GetCurrentAnimatorStateInfo(0).length);
+
+        if (!isGrounded) {
+            if (isWalled){
+                lookRot = Quaternion.LookRotation(-wallNormal, Vector3.up);
+                if (upSpd < 0) {
+                    currentGravity = -0.6f;
+                    //upSpd = -wallSlideSpd;
+                }
+            }
+            else {
+                currentGravity = gravity;
+            }
+        }
+        else {
+            currentGravity = gravity;
+        }
+        upSpd += currentGravity* Time.deltaTime;
+
+        transform.rotation = lookRot;
+        movement.y = upSpd;
+        isGrounded = false;
+        isWalled = false;
+        charController.Move(movement * Time.deltaTime * speed);
+
+        Debug.Log("gnd:"+isGrounded+" wll:"+isWalled);
+        if (Input.GetButtonDown("Jump")) {
+            if (isGrounded) {
+                upSpd = jumpSpd;
+                anim.Play("Jump", 0);
+            }
+            else {
+                if (isWalled) {
+                    finalMove.y = -wallJumpSpd;
+                    upSpd = jumpSpd;
+                    //isWallJump = true;
+                }
+                else {
+                    //isWallJump = false;
+                }
+            }
+        }
+
+        Debug.Log(upSpd);
+    }
+
     void move() {
         hSpd = Input.GetAxis("Horizontal");
         vSpd = Input.GetAxis("Vertical");
@@ -104,6 +226,7 @@ public class SimioController : MonoBehaviour {
         camForward.Normalize();
         camRight.Normalize();
 #endif
+
         movement = new Vector3((camForward.x * vSpd) + (camRight.x * hSpd), 0f, (camForward.y * vSpd) + (camRight.y * hSpd));
         float magnitude = movement.magnitude;
 
@@ -137,7 +260,7 @@ public class SimioController : MonoBehaviour {
         else {
             currentGravity = gravity;
         }
-        upSpd += currentGravity* Time.deltaTime;
+        upSpd += currentGravity * Time.deltaTime;
 
         transform.rotation = lookRot;
 
@@ -161,9 +284,9 @@ public class SimioController : MonoBehaviour {
 
         isGrounded = false;
         isWalled = false;
-        charController.Move((new Vector3(transform.forward.x* magnitude, upSpd, transform.forward.z* magnitude)+ wallJumpVector) * Time.deltaTime * speed);
+        charController.Move((new Vector3(transform.forward.x * magnitude, upSpd, transform.forward.z * magnitude) + wallJumpVector) * Time.deltaTime * speed);
 
-        Debug.Log("gnd:"+isGrounded+" wll:"+isWalled);
+        Debug.Log("gnd:" + isGrounded + " wll:" + isWalled);
         if (Input.GetButtonDown("Jump")) {
             if (isGrounded) {
                 upSpd = jumpSpd;
@@ -181,6 +304,7 @@ public class SimioController : MonoBehaviour {
 
         Debug.Log(upSpd);
     }
+
     private bool isWallJump = false;
     private Vector3 wallJumpVector = Vector3.zero;
     public float wallJumpSpd = 1;
