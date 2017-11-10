@@ -173,9 +173,8 @@ public class BasicMovement : MonoBehaviour {
     }
     // setters
     public void lockLookDirection(Quaternion lookDirection) {
-        lookRot = lookDirection;
-
         isLookDirLocked = true;
+        transform.rotation = lookDirection;
     }
     
     public void freeLookDirection() {
