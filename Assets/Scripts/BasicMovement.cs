@@ -14,16 +14,18 @@ public class BasicMovement : MonoBehaviour {
 
     // for movement
     public float globalSpeed = 1;
-    public float jumpSpeed = 1;
+    public float jumpSpeed = 20;
     private CharacterController charController;
-    public float gravity = -3.5f;
+    public float gravity = -35f;
     private Vector2 stickVector;
     private Vector2 camForward;
     private Vector2 camRight;
     private float upMovement;
     private Vector3 movementToSpeed;
     // this value multiply the stick raw input, increase for more speed
-    public float speedScale = 1.1f;
+    public float speedScale = 14f;
+    public float brakeFactor = 35f;
+    public float counterSpeed = 40f;
 
     // for collitions
     private bool isGro;
@@ -53,11 +55,6 @@ public class BasicMovement : MonoBehaviour {
 	void Update () {
 		move();
 	}
-
-
-    public float brakeFactor = 0.3f;
-    public float speedClamp = 0.01f;
-    public float counterSpeed = 0.5f;
     void move() {
         stickVector = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
         camForward = new Vector2(camera.transform.forward.x, camera.transform.forward.z);
@@ -84,22 +81,24 @@ public class BasicMovement : MonoBehaviour {
             anim.SetBool("running", false);
         }
 
-        upMovement += gravity * Time.deltaTime * globalSpeed;
+        upMovement += gravity * Time.deltaTime;
 
         if (!isLookDirLocked)
             transform.rotation = lookRot;
 
+        Debug.Log(magnitude);
         if(magnitude > 0) {
             movementToSpeed.x = axisMoveTowards(movementToSpeed.x, camRelMovement.x);
-            movementToSpeed.y = axisMoveTowards(movementToSpeed.y, camRelMovement.y);
+            movementToSpeed.z = axisMoveTowards(movementToSpeed.z, camRelMovement.z);
         }
         else {
             movementToSpeed.x = axisStop(movementToSpeed.x);
-            movementToSpeed.y = axisStop(movementToSpeed.y);
+            movementToSpeed.z = axisStop(movementToSpeed.z);
         }
-
+        
         movementToSpeed.y = upMovement;
 
+        Debug.Log(movementToSpeed);
         isGro = false;
         isWal = false;
         charController.Move(movementToSpeed * Time.deltaTime * globalSpeed);
@@ -109,37 +108,22 @@ public class BasicMovement : MonoBehaviour {
             anim.Play("Jump", 0);
         }
     }
-
     private float axisMoveTowards(float speedAxis, float moveAxis) {
         if (speedAxis != moveAxis * speedScale) {
             if (moveAxis > 0) {
                 if (speedAxis > moveAxis * speedScale) {
-                    float reduc = (speedAxis - (moveAxis * speedScale)) * brakeFactor;
-                    if (reduc < speedClamp)
-                        return moveAxis * speedScale;
-                    else
-                        return speedAxis - (reduc * Time.deltaTime);
+                    return speedAxis - (brakeFactor * Time.deltaTime);
                 }
                 else {
-                    if (speedAxis + (moveAxis * counterSpeed) > moveAxis * speedScale)
-                        return moveAxis * speedScale;
-                    else
-                        return speedAxis + (moveAxis * counterSpeed * Time.deltaTime);
+                    return speedAxis + (counterSpeed * Time.deltaTime);
                 }
             }
             else {
                 if (speedAxis < moveAxis * speedScale) {
-                    float reduc = (speedAxis - (moveAxis * speedScale)) * brakeFactor;
-                    if (-reduc < speedClamp)
-                        return moveAxis * speedScale;
-                    else
-                        return speedAxis - (reduc * Time.deltaTime);
+                    return speedAxis + (brakeFactor * Time.deltaTime);
                 }
                 else {
-                    if (speedAxis + (moveAxis * counterSpeed) < moveAxis * speedScale)
-                        return moveAxis * speedScale;
-                    else
-                        return speedAxis + (moveAxis * counterSpeed * Time.deltaTime);
+                    return speedAxis - (counterSpeed * Time.deltaTime);
                 }
             }
         }
@@ -148,7 +132,12 @@ public class BasicMovement : MonoBehaviour {
 
     private float axisStop(float speedAxis) {
         if (speedAxis != 0) {
-            return speedAxis * brakeFactor;
+            float sign = Mathf.Sign(speedAxis);
+            float newSpd = speedAxis - (brakeFactor * Time.deltaTime * sign);
+            if (sign != Mathf.Sign(newSpd))
+                return 0;
+            else
+                return newSpd;
         }
         return speedAxis;
     }
