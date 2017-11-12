@@ -16,11 +16,11 @@ public class BasicMovement : MonoBehaviour {
     public float globalSpeed = 1;
     public float jumpSpeed = 20;
     private CharacterController charController;
-    public float gravity = -35f;
+    public float gravity = -0.9f;
+    public float maxGravity = -40f;
     private Vector2 stickVector;
     private Vector2 camForward;
     private Vector2 camRight;
-    private float upMovement;
     private Vector3 movementToSpeed;
     // this value multiply the stick raw input, increase for more speed
     public float speedScale = 14f;
@@ -47,7 +47,6 @@ public class BasicMovement : MonoBehaviour {
         anim = GetComponent<Animator>();
         isGro = false;
         isWal = false;
-        upMovement = 0;
         movementToSpeed = Vector3.zero;
     }
 	
@@ -81,12 +80,12 @@ public class BasicMovement : MonoBehaviour {
             anim.SetBool("running", false);
         }
 
-        upMovement += gravity * Time.deltaTime;
+        if(movementToSpeed.y > maxGravity)
+            movementToSpeed.y += (-maxGravity+ movementToSpeed.y) * gravity * Time.deltaTime;
 
         if (!isLookDirLocked)
             transform.rotation = lookRot;
 
-        Debug.Log(magnitude);
         if(magnitude > 0) {
             movementToSpeed.x = axisMoveTowards(movementToSpeed.x, camRelMovement.x);
             movementToSpeed.z = axisMoveTowards(movementToSpeed.z, camRelMovement.z);
@@ -95,8 +94,6 @@ public class BasicMovement : MonoBehaviour {
             movementToSpeed.x = axisStop(movementToSpeed.x);
             movementToSpeed.z = axisStop(movementToSpeed.z);
         }
-        
-        movementToSpeed.y = upMovement;
 
         Debug.Log(movementToSpeed);
         isGro = false;
@@ -104,7 +101,7 @@ public class BasicMovement : MonoBehaviour {
         charController.Move(movementToSpeed * Time.deltaTime * globalSpeed);
 
         if (Input.GetButtonDown("Jump") && isGro) {
-            upMovement = jumpSpeed;
+            movementToSpeed.y = jumpSpeed;
             anim.Play("Jump", 0);
         }
     }
@@ -147,7 +144,7 @@ public class BasicMovement : MonoBehaviour {
         hitAngle = Vector3.Angle(hit.normal, Vector3.up);
         if (hitAngle < groundAngleTolerance) {
             isGro = true;
-            upMovement = 0;
+            movementToSpeed.y = 0;
             floorNormal = hit.normal;
         }
 
@@ -180,6 +177,16 @@ public class BasicMovement : MonoBehaviour {
     public void freeLookDirection() {
         isLookDirLocked = false;
     }
+
+    // others
+    public void addForce(Vector3 forceVector) {
+        movementToSpeed += forceVector;
+    }
+
+    public bool isFalling() {
+        return movementToSpeed.y < 0;
+    }
+
     // this function calculate the angle just in the bottom plane
     public static float Angle(Vector3 dirVector) {
         if (dirVector.x < 0) {

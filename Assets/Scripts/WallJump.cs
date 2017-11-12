@@ -5,6 +5,13 @@ using UnityEngine;
 public class WallJump : MonoBehaviour {
 
     private BasicMovement playerMove;
+    public float jumpBackForce = 25f;
+    public float jumpUpForce = 20f;
+    private bool isDirLock = false;
+    private Vector3 jumpDirection;
+    public float friction = 20;
+
+
     // Use this for initialization
     void Start () {
         playerMove = GetComponent<BasicMovement>();
@@ -12,13 +19,29 @@ public class WallJump : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
+
 		if(!playerMove.isGrounded() && playerMove.isWalled()) {
 
-            playerMove.lockLookDirection(Quaternion.LookRotation(-playerMove.getWallNormal(), Vector3.up));
+            if (Input.GetButtonDown("Jump")) {
+                jumpDirection= playerMove.getWallNormal()* jumpBackForce + Vector3.up* jumpUpForce;
+                playerMove.addForce(jumpDirection);
 
+            }
+            else {
+                if(playerMove.isFalling()) 
+                playerMove.addForce(Vector3.up * friction * Time.deltaTime);
+            }
+
+            if (!isDirLock) {
+                isDirLock = true;
+                playerMove.lockLookDirection(Quaternion.LookRotation(-playerMove.getWallNormal(), Vector3.up));
+            }
         }
         else {
-            playerMove.freeLookDirection();
+            if (isDirLock) {
+                isDirLock = false;
+                playerMove.freeLookDirection();
+            }
         }
 	}
 }
