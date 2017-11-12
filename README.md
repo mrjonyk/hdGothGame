@@ -1,7 +1,7 @@
 # hdGothGame
 
-(Try **`CRTL + Left click`** to open links in a new tab).
-(intenta **`CRTL + Click izquiero`** para abrir link en una nueva pestaña).
+(Try **`CRTL + Left click`** to open links in other tab).
+(intenta **`CRTL + Click izquiero`** para abrir enlaces en otra pestaña).
 
 ## Synopsis
 
