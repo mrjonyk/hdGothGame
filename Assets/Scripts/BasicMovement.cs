@@ -52,7 +52,10 @@ public class BasicMovement : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		move();
+        if (isOverride)
+            transform.position = followPoint;
+        else
+		    move();
 	}
     void move() {
         stickVector = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
@@ -95,7 +98,6 @@ public class BasicMovement : MonoBehaviour {
             movementToSpeed.z = axisStop(movementToSpeed.z);
         }
 
-        Debug.Log(movementToSpeed);
         isGro = false;
         isWal = false;
         charController.Move(movementToSpeed * Time.deltaTime * globalSpeed);
@@ -187,6 +189,19 @@ public class BasicMovement : MonoBehaviour {
         return movementToSpeed.y < 0;
     }
 
+    private bool isOverride = false;
+    private Vector3 followPoint;
+    public void overridePosition(Vector3 newPosition) {
+        isOverride = true;
+        followPoint = newPosition;
+    }
+    public void freePosition() {
+        isOverride = false;
+    }
+
+    public void toggleColDetect() {
+        charController.detectCollisions = !charController.detectCollisions;
+    }
     // this function calculate the angle just in the bottom plane
     public static float Angle(Vector3 dirVector) {
         if (dirVector.x < 0) {
