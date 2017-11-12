@@ -16,4 +16,4 @@ Este es un juego de fiesta creado usando unity y blender.
 
 Esta inspirado por varios juegos de fiesta y se espera que sirva como campo de pruebas creativas.
 
-Como tema artistico, se usan varias referencais a los productos de Jaidefinichon ([pagina principal](http://www.jaidefinichon.com/)), principalmente a sus canales de gameplays ([youtube](https://www.youtube.com/user/Jaidefinichon), [twitch](https://go.twitch.tv/jaidefinichon)), porque en ellos se exponen sus protagonistas (holyfoo, eddiesick, jaime, bestia negra) como personajes distintivos y constriyen sus identidades.
+Como tema artistico, se usan varias referencais a los productos de Jaidefinichon ([pagina principal](http://www.jaidefinichon.com/){:target="_blank"}), principalmente a sus canales de gameplays ([youtube](https://www.youtube.com/user/Jaidefinichon), [twitch](https://go.twitch.tv/jaidefinichon)), porque en ellos se exponen sus protagonistas (holyfoo, eddiesick, jaime, bestia negra) como personajes distintivos y constriyen sus identidades.
