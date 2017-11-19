@@ -700,6 +700,9 @@ ModelImporter:
     101384: upper_arm_L_2
     101386: upper_arm_R_2
     101388: upperLip_2
+    101390: Cube_010
+    101392: Cube_010_MeshPart0
+    101394: Cube_010_MeshPart1
     400000: //RootNode
     400002: Bone
     400004: Bone_0
@@ -1395,6 +1398,9 @@ ModelImporter:
     401384: upper_arm_L_2
     401386: upper_arm_R_2
     401388: upperLip_2
+    401390: Cube_010
+    401392: Cube_010_MeshPart0
+    401394: Cube_010_MeshPart1
     2300000: Cube
     2300002: Cube_000
     2300004: Cube_001
@@ -1418,6 +1424,8 @@ ModelImporter:
     2300040: Cube_008
     2300042: Cube_009
     2300044: hlyHair_001
+    2300046: Cube_010_MeshPart0
+    2300048: Cube_010_MeshPart1
     3300000: Cube
     3300002: Cube_000
     3300004: Cube_001
@@ -1441,6 +1449,8 @@ ModelImporter:
     3300040: Cube_008
     3300042: Cube_009
     3300044: hlyHair_001
+    3300046: Cube_010_MeshPart0
+    3300048: Cube_010_MeshPart1
     4300000: Plane
     4300002: Cube_005
     4300004: Cube_003
@@ -1478,6 +1488,8 @@ ModelImporter:
     4300068: Cube_008
     4300070: Cube_007
     4300072: Cube_006
+    4300074: Cube_010_MeshPart0
+    4300076: Cube_010_MeshPart1
     7400000: Default Take
     7400002: metarigAction
     7400004: metarigAction_002

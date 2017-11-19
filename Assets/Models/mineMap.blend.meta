@@ -8,20 +8,74 @@ ModelImporter:
     100000: //RootNode
     100002: Cube
     100004: Cube_001
+    100006: Grid
+    100008: Grid_001
+    100010: Grid_002
+    100012: Icosphere
+    100014: Plane
+    100016: Plane_001
+    100018: Plane_002
+    100020: Plane_003
+    100022: Plane_004
     400000: //RootNode
     400002: Cube
     400004: Cube_001
+    400006: Grid
+    400008: Grid_001
+    400010: Grid_002
+    400012: Icosphere
+    400014: Plane
+    400016: Plane_001
+    400018: Plane_002
+    400020: Plane_003
+    400022: Plane_004
     2300000: //RootNode
     2300002: Cube
     2300004: Cube_001
+    2300006: Grid
+    2300008: Grid_001
+    2300010: Grid_002
+    2300012: Icosphere
+    2300014: Plane
+    2300016: Plane_001
+    2300018: Plane_002
+    2300020: Plane_003
+    2300022: Plane_004
     3300000: //RootNode
     3300002: Cube
     3300004: Cube_001
+    3300006: Grid
+    3300008: Grid_001
+    3300010: Grid_002
+    3300012: Icosphere
+    3300014: Plane
+    3300016: Plane_001
+    3300018: Plane_002
+    3300020: Plane_003
+    3300022: Plane_004
     4300000: Cube
     4300002: Cube_001
+    4300004: Grid_002
+    4300006: Grid_001
+    4300008: Grid
+    4300010: Plane_004
+    4300012: Plane_003
+    4300014: Plane_002
+    4300016: Plane_001
+    4300018: Plane
+    4300020: Icosphere
     6400000: //RootNode
     6400002: Cube
     6400004: Cube_001
+    6400006: Grid
+    6400008: Grid_001
+    6400010: Grid_002
+    6400012: Icosphere
+    6400014: Plane
+    6400016: Plane_001
+    6400018: Plane_002
+    6400020: Plane_003
+    6400022: Plane_004
     7400000: Default Take
     9500000: //RootNode
   materials:
