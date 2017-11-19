@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CarMovement : MonoBehaviour {
+    private string key = "Fire1";
     private GameObject player;
     private Rigidbody rigidBody;
     private BasicMovement playerMove;
@@ -31,7 +32,7 @@ public class CarMovement : MonoBehaviour {
             }
         }
         else {
-            if (Input.GetButtonDown("Fire1")) {
+            if (Input.GetButtonDown(key)) {
                 Debug.LogWarning(onRide);
                 playerMove.freePosition();
                 playerMove.toggleColDetect();
