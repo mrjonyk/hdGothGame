@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class BasicMovement : MonoBehaviour {
+    // buttons
+
+    private string trinagle = "Jump";
+    private string square = "Fire3";
+    private string circle = "Fire2";
+    private string cross = "Fire1";
 
     // self's camera
     private GameObject camera;
@@ -11,6 +17,7 @@ public class BasicMovement : MonoBehaviour {
     // animation
     private Animator anim;
     public float walkLimit = 0.5f;
+    private IEnumerator blinkCoroutine;
 
     // for movement
     public float globalSpeed = 1;
@@ -48,13 +55,15 @@ public class BasicMovement : MonoBehaviour {
         isGro = false;
         isWal = false;
         movementToSpeed = Vector3.zero;
+
+        blinkCoroutine = Blinking();
+        StartCoroutine(blinkCoroutine);
     }
 	
 	// Update is called once per frame
 	void Update () {
-        if (isOverride)
-            transform.position = followPoint;
-        else
+        //Debug.Log("skip char move: " + isOverride);
+        if (!isOverride)
 		    move();
 	}
     void move() {
@@ -86,10 +95,12 @@ public class BasicMovement : MonoBehaviour {
         if(movementToSpeed.y > maxGravity)
             movementToSpeed.y += (-maxGravity+ movementToSpeed.y) * gravity * Time.deltaTime;
 
-        if (!isLookDirLocked)
+        if (!isLookDirLocked) 
             transform.rotation = lookRot;
+        else
+            magnitude = 0;
 
-        if(magnitude > 0) {
+        if (magnitude > 0) {
             movementToSpeed.x = axisMoveTowards(movementToSpeed.x, camRelMovement.x);
             movementToSpeed.z = axisMoveTowards(movementToSpeed.z, camRelMovement.z);
         }
@@ -102,7 +113,7 @@ public class BasicMovement : MonoBehaviour {
         isWal = false;
         charController.Move(movementToSpeed * Time.deltaTime * globalSpeed);
 
-        if (Input.GetButtonDown("Jump") && isGro) {
+        if (Input.GetButtonDown(cross) && isGro) {
             movementToSpeed.y = jumpSpeed;
             anim.Play("Jump", 0);
         }
@@ -190,17 +201,25 @@ public class BasicMovement : MonoBehaviour {
     }
 
     private bool isOverride = false;
-    private Vector3 followPoint;
-    public void overridePosition(Vector3 newPosition) {
+    public void overridePosition(Transform newParent) {
+        transform.position = newParent.position;
+        transform.parent = newParent;
         isOverride = true;
-        followPoint = newPosition;
     }
-    public void freePosition() {
+    public void freePosition( Vector3 atPosition) {
+        transform.parent = null;
         isOverride = false;
+        transform.position = atPosition;
+        anim.Play("Idle");
     }
 
     public void toggleColDetect() {
         charController.detectCollisions = !charController.detectCollisions;
+    }
+
+    public void seat(Vector3 seatLooking) {
+        transform.forward = seatLooking;
+        anim.Play("Seat");
     }
     // this function calculate the angle just in the bottom plane
     public static float Angle(Vector3 dirVector) {
@@ -209,6 +228,13 @@ public class BasicMovement : MonoBehaviour {
         }
         else {
             return Mathf.Atan2(dirVector.x, dirVector.z) * Mathf.Rad2Deg;
+        }
+    }
+
+    private IEnumerator Blinking() {
+        while (true) {
+            yield return new WaitForSeconds(UnityEngine.Random.Range(3, 6));
+            anim.SetTrigger("blink");
         }
     }
 }

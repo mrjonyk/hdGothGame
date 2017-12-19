@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class WallJump : MonoBehaviour {
 
+    private string JumpKey = "Fire1";
     private BasicMovement playerMove;
     public float jumpBackForce = 25f;
     public float jumpUpForce = 20f;
@@ -22,7 +23,7 @@ public class WallJump : MonoBehaviour {
 
 		if(!playerMove.isGrounded() && playerMove.isWalled()) {
 
-            if (Input.GetButtonDown("Jump")) {
+            if (Input.GetButtonDown(JumpKey)) {
                 jumpDirection= playerMove.getWallNormal()* jumpBackForce + Vector3.up* jumpUpForce;
                 playerMove.addForce(jumpDirection);
 

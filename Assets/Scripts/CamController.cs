@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CamController : MonoBehaviour {
-
     private GameObject player;
+    private GameObject target;
+
+    public Vector3 TargetPositionOffset = new Vector3(0,3.5f,0);
     // Use this for initialization
 
     // guardar lista de posiciones cada cierto tiempo
@@ -14,34 +16,52 @@ public class CamController : MonoBehaviour {
     private float lastSaved = 0;
     public float saveStateDelay = 0.1f;
     public float distanceToPlayer = 10;
-    public float upDistance = 10;
+    public float upDistance = 8;
     public float camSpeed = 1.5f;
+    public float camRotSpeed = 50f;
+    public float lookSpeed = 0.2f;
+    private Vector3 ghostPosition;
 
     void Start () {
         player = GameObject.Find("edgarMCSkin");
-        transform.position = player.transform.position - player.transform.forward * distanceToPlayer + Vector3.up * upDistance;
+        target = player;
+
+        ghostPosition = target.transform.position - (target.transform.forward * distanceToPlayer) + (Vector3.up * upDistance);
     }
 
-    Vector3 nextPosition;
     // Update is called once per frame
+    
     void Update () {
         if (onParaWalls) {
-            camMove(player.transform.position + (paraWallDir * distanceToPlayer),0);
-            Debug.DrawRay(player.transform.position, paraWallDir);
+            ghostPosition = camMove(ghostPosition, target.transform.position+ TargetPositionOffset + (paraWallDir * distanceToPlayer),0);
+            //Debug.DrawRay(target.transform.position, paraWallDir);
         }
         else {
-            camMove(player.transform.position, distanceToPlayer);
+            ghostPosition = camMove(ghostPosition, target.transform.position+ TargetPositionOffset, distanceToPlayer);
+        }
+        ghostPosition.y = Mathf.Lerp(ghostPosition.y, target.transform.position.y + upDistance, 0.1f);
+
+        // rotate with stick
+        ghostPosition = (Quaternion.AngleAxis(Input.GetAxis("rightHorizontal") * camRotSpeed * Time.deltaTime, Vector3.up) * (ghostPosition-target.transform.position))+ target.transform.position;
+
+        transform.rotation = Quaternion.Lerp(transform.rotation,Quaternion.LookRotation(((target.transform.position+ TargetPositionOffset) -transform.position).normalized), lookSpeed);
+
+        transform.position = ghostPosition;
+        
+        RaycastHit hit;
+        if (Physics.Raycast(target.transform.position+ TargetPositionOffset, transform.position - (target.transform.position+ TargetPositionOffset),out hit,Vector3.Distance(target.transform.position+ TargetPositionOffset, transform.position))) {
+            //Debug.LogWarning("something between camear and player");
+            transform.position = hit.point;
         }
 
-        transform.rotation = Quaternion.Lerp(transform.rotation,Quaternion.LookRotation((player.transform.position-transform.position).normalized),0.6f);
-
     }
-    Vector3 targetPosition;
-    void camMove(Vector3 targetPosition, float maxDistance) {
-
-        targetPosition.y = player.transform.position.y + upDistance;
-
-        transform.position = Vector3.MoveTowards(transform.position, targetPosition, (Vector3.Distance(transform.position, targetPosition) - maxDistance) * camSpeed * Time.deltaTime);
+    Vector3 targPos;
+    Vector3 camMove(Vector3 currentPosition,Vector3 targetPosition, float maxDistance) {
+        targPos = targetPosition;
+        //targPos.y += upDistance;
+        targPos = Vector3.MoveTowards(currentPosition, targPos, (Vector3.Distance(currentPosition, targPos) - maxDistance) * camSpeed * Time.deltaTime);
+        
+        return targPos;
     }
     private bool onParaWalls = false;
     private Vector3 paraWallDir;
@@ -91,5 +111,10 @@ public class CamController : MonoBehaviour {
         //}
         return Vector3.zero;
     }
-
+    public void changeTarget(GameObject newTarget) {
+        target = newTarget;
+    }
+    public void resetTarget() {
+        target = player;
+    }
 }
