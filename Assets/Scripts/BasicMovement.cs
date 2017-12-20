@@ -11,7 +11,7 @@ public class BasicMovement : MonoBehaviour {
     private string cross = "Fire1";
 
     // self's camera
-    private GameObject camera;
+    private GameObject mainCamera;
     private Vector3 camRelMovement;
 
     // animation
@@ -47,10 +47,9 @@ public class BasicMovement : MonoBehaviour {
     public float rotSpeed = 400;
     private bool isLookDirLocked;
 
-    // Use this for initialization
     void Start () {
         charController = GetComponent<CharacterController>();
-        camera = GameObject.Find("Main Camera");
+        mainCamera = GameObject.Find("Main Camera");
         anim = GetComponent<Animator>();
         isGro = false;
         isWal = false;
@@ -60,16 +59,15 @@ public class BasicMovement : MonoBehaviour {
         StartCoroutine(blinkCoroutine);
     }
 	
-	// Update is called once per frame
 	void Update () {
-        //Debug.Log("skip char move: " + isOverride);
         if (!isOverride)
 		    move();
 	}
+
     void move() {
         stickVector = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-        camForward = new Vector2(camera.transform.forward.x, camera.transform.forward.z);
-        camRight = new Vector2(camera.transform.right.x, camera.transform.right.z);
+        camForward = new Vector2(mainCamera.transform.forward.x, mainCamera.transform.forward.z);
+        camRight = new Vector2(mainCamera.transform.right.x, mainCamera.transform.right.z);
         camForward.Normalize();
         camRight.Normalize();
 

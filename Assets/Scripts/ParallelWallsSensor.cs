@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class ParallelWallsSensor : MonoBehaviour {
+
+    private bool isActivated = true;
     public LayerMask mask = 0;
-    private CamController camera;
+    private CamController mainCamera;
     private CharacterController charController;
     public float detectDistance=4f;
     public float btwnWallsDistance=10.5f;
@@ -14,9 +16,19 @@ public class ParallelWallsSensor : MonoBehaviour {
     private bool paraWallFound = false;
     public int discCastNum = 8;
     private Vector3[] discRaysDirections;
-    // Use this for initialization
+
+    private Vector3 camPlayerVector;
+    private Quaternion nineDegY = Quaternion.Euler(0, 90, 0);
+
+    private RaycastHit hit;
+    private Vector3 savedPoint;
+    private Vector3 savedNormal;
+
+    private int savedRayIndex;
+    private int savedRaySign;
+
     void Start () {
-        camera = GameObject.Find("Main Camera").GetComponent<CamController>();
+        mainCamera = GameObject.Find("Main Camera").GetComponent<CamController>();
         charController = GetComponent<CharacterController>();
         discCastHeight = charController.height * discCastHeightFraction;
         discCastNum = discCastNum % 2 == 0 ? discCastNum / 2 : (discCastNum + 1) / 2;
@@ -32,21 +44,21 @@ public class ParallelWallsSensor : MonoBehaviour {
 
     }
 	
-	// Update is called once per frame
 	void Update () {
-        camPlayerVector = camera.transform.position - transform.position;
-        discCastOrigin = transform.position + (Vector3.up * discCastHeight);
-        checkParaWall();
+        if (isActivated) {
+            camPlayerVector = mainCamera.transform.position - transform.position;
+            discCastOrigin = transform.position + (Vector3.up * discCastHeight);
+            checkParaWall();
+        }
     }
 
-    private int savedRayIndex;
-    private int savedRaySign;
+
     void checkParaWall() {
 
         if (paraWallFound) {
             if(!checkWall(discRaysDirections[savedRayIndex], savedRaySign)){
                 paraWallFound = false;
-                camera.onParallelWalls(Vector3.zero,false);
+                mainCamera.onParallelWalls(Vector3.zero,false);
             }
         }
         else {
@@ -55,7 +67,7 @@ public class ParallelWallsSensor : MonoBehaviour {
                     paraWallFound = true;
                     savedRaySign = 1;
                     savedRayIndex = a;
-                    camera.onParallelWalls(calcParaWallDirection(savedPoint, hit.point),true);
+                    mainCamera.onParallelWalls(calcParaWallDirection(savedPoint, hit.point),true);
                     break;
                 }
                 else {
@@ -64,17 +76,13 @@ public class ParallelWallsSensor : MonoBehaviour {
                         paraWallFound = true;
                         savedRaySign = -1;
                         savedRayIndex = a;
-                        camera.onParallelWalls(calcParaWallDirection(savedPoint, hit.point),true);
+                        mainCamera.onParallelWalls(calcParaWallDirection(savedPoint, hit.point),true);
                         break;
                     }
                 }
             }
         }
     }
-
-    private RaycastHit hit;
-    private Vector3 savedPoint;
-    private Vector3 savedNormal;
 
     bool checkWall(Vector3 direction, int scale) {
 
@@ -100,19 +108,23 @@ public class ParallelWallsSensor : MonoBehaviour {
         return false;
     }
 
-    private Vector3 camPlayerVector;
-    private Quaternion nineDegY = Quaternion.Euler(0, 90, 0);
-
     Vector3 calcParaWallDirection(Vector3 pointA, Vector3 pointB) {
         pointA.y = 0;
         pointB.y = 0;
 
         Vector3 toCameraDirection = nineDegY * (pointA - pointB);
 
-        
         if (Vector3.Angle(camPlayerVector, toCameraDirection) > Vector3.Angle(camPlayerVector, toCameraDirection * -1)) {
             return toCameraDirection * -1;
         }
         return toCameraDirection;
+    }
+
+    void deactivate() {
+        isActivated = false;
+    }
+
+    void activate() {
+        isActivated = true;
     }
 }

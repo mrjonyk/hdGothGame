@@ -7,259 +7,254 @@ public class CarMovement : MonoBehaviour {
     private string accelKey = "Fire1";
     private string brakeKey = "Fire2";
     private string directionAxis = "Horizontal";
-    private string driftKey = "Fire3";
+    private string reverseKey = "Fire3";
     private string ioKey = "Jump";
 
+    // movement
+    public float minCarDistance =3.5f;
+    private bool onRide = false;
+    private float outPositon = -3.5f;
+    //public float maxFrontSpd = 20f;
+    //public float maxBackSpd = 13f;
+    public float accelForwardForce = 300f;
+    public float brakeForce = 400f;
+    public float accelBackForce = 200f;
+    public float maxWheelDirAngle = 55;
+    // wheels
+    private GameObject[] wheelsAxis = new GameObject[4];
+    private GameObject[] wheelsMeshAxis = new GameObject[4];
+    private GameObject[] seatsBase = new GameObject[2];
+    private WheelCollider[] wheelsCollider = new WheelCollider[4];
+    // index dictionary
+    private int FL = 0; // Front Left
+    private int FR = 1; // Front Right
+    private int BL = 2; // Back Left
+    private int BR = 3; // Back Right
 
+    // miscelaneous objects
+    public Material defaultMaterial;
+    private CamController mainCamera;
     private GameObject player;
     private Rigidbody rigidBody;
     private BasicMovement playerMove;
 
-    // movement
-    private Vector3 moveSpeed;
-    private Vector3 groundNormal;
-    public float minCarDistance =3.5f;
-    private bool onRide = false;
-    public float speed=5f;
-    public float gravity = -0.9f;
-    private float outPositon = -3.5f;
-    private CamController cameraCon;
-
-    // car
-    private GameObject[] wheelsFront = new GameObject[2];
-    private GameObject[] wheelsBack = new GameObject[2];
-    private GameObject[] seats = new GameObject[2];
-    private GameObject[] wheelDirAxis = new GameObject[2];
-    private Rigidbody[] wheelTractionAxis = new Rigidbody[2];
-
-    private JointMotor forwardMotor = new JointMotor();
-    private JointMotor backwardMotor = new JointMotor();
-    private JointMotor zeroMotor = new JointMotor();
-
-    private int L = 0;
-    private int R = 1;
-    // Use this for initialization
     void Start () {
 
-        forwardMotor.force = 50;
-        forwardMotor.freeSpin = true;
-        forwardMotor.targetVelocity = 500;
-        backwardMotor.force = 50;
-        backwardMotor.freeSpin = true;
-        backwardMotor.targetVelocity = -500;
-        zeroMotor.force = 0;
-        zeroMotor.freeSpin = true;
-        zeroMotor.targetVelocity = 0;
-
-        cameraCon = GameObject.Find("Main Camera").GetComponent<CamController>();
+        mainCamera = GameObject.Find("Main Camera").GetComponent<CamController>();
         player = GameObject.Find("edgarMCSkin");
         playerMove = player.GetComponent<BasicMovement>();
         rigidBody = GetComponent<Rigidbody>();
-        GameObject[] wheels = GameObject.FindGameObjectsWithTag("wheel");
-        GameObject[] seats_ = GameObject.FindGameObjectsWithTag("seat");
 
-        foreach(GameObject wheel in wheels) {
-            
-            if (wheel.name == "frontLeftAxis") {
-                wheelsFront[L] = wheel;
-            }
-            if (wheel.name == "backLeftAxis") {
-                wheelsBack[L] = wheel;
-            }
-            if (wheel.name == "frontRightAxis") {
-                wheelsFront[R] = wheel;
-            }
-            if (wheel.name == "backRightAxis") {
-                wheelsBack[R] = wheel;
-            }
-
-            if (wheel.name == "rightDirectionAxis") {
-                wheelDirAxis[R] = wheel;
-            }
-            if (wheel.name == "leftDirectionAxis") {
-                wheelDirAxis[L] = wheel;
-            }
-        }
-
-        wheelTractionAxis[L] = wheelsBack[L].GetComponent<Rigidbody>();
-        wheelTractionAxis[R] = wheelsBack[R].GetComponent<Rigidbody>();
-
-
-
-        foreach (GameObject seat in seats_) {
-            if (seat.name == "seatLeft") {
-                seats[L] = seat;
-            }
-            if (seat.name == "seatRight") {
-                seats[R] = seat;
-            }
-        }
-        GameObject wheelObject = Resources.Load<GameObject>("defaultWheel");
-        Mesh seatMesh = Resources.Load<Mesh>("defaultSeat");
-        
-        Transform wheelColliderTr = wheelObject.transform.Find("wheelCollider");
-        Transform wheelMeshTr = wheelObject.transform.Find("wheelMesh");
-        
-        Mesh wheelMesh = wheelMeshTr.GetComponent<MeshFilter>().sharedMesh;
-        Mesh wheelColl = wheelColliderTr.GetComponent<MeshFilter>().sharedMesh;
-        //Debug.Log(seatMesh.vertexCount);
-        wheelsFront[L].GetComponent<MeshFilter>().mesh = wheelMesh;
-        wheelsFront[L].GetComponent<MeshCollider>().sharedMesh = wheelColl;
-        wheelsFront[L].transform.localRotation = Quaternion.AngleAxis(90,Vector3.forward);
-        wheelsFront[R].GetComponent<MeshFilter>().mesh = wheelMesh;
-        wheelsFront[R].GetComponent<MeshCollider>().sharedMesh = wheelColl;
-        wheelsFront[R].transform.localRotation = Quaternion.AngleAxis(-90, Vector3.forward);
-        wheelsBack[L].GetComponent<MeshFilter>().mesh = wheelMesh;
-        wheelsBack[L].GetComponent<MeshCollider>().sharedMesh = wheelColl;
-        wheelsBack[L].transform.localRotation = Quaternion.AngleAxis(90, Vector3.forward);
-        wheelsBack[R].GetComponent<MeshFilter>().mesh = wheelMesh;
-        wheelsBack[R].GetComponent<MeshCollider>().sharedMesh = wheelColl;
-        wheelsBack[R].transform.localRotation = Quaternion.AngleAxis(-90, Vector3.forward);
-        seats[L].GetComponent<MeshFilter>().mesh = seatMesh;
-        seats[R].GetComponent<MeshFilter>().mesh = seatMesh;
-
-        Physics.IgnoreCollision(GetComponentInChildren<Collider>(), wheelsFront[L].GetComponent<Collider>(), true);
-        Physics.IgnoreCollision(GetComponentInChildren<Collider>(), wheelsFront[R].GetComponent<Collider>(), true);
+        SetWheels();
+        SetChasis();
     }
 
-    private Vector3 front;
-    private Vector3 right;
+    void SetWheels() {
+
+        // setup the wheels
+        GameObject[] wheels = FindGameObjectInChildWithTag(transform,"wheel");
+        
+        
+
+        foreach (GameObject wheel in wheels) {
+
+            if (wheel.name == "frontLeftAxis") {
+                wheelsAxis[FL] = wheel;
+            }
+            if (wheel.name == "frontRightAxis") {
+                wheelsAxis[FR] = wheel;
+            }
+            if (wheel.name == "backLeftAxis") {
+                wheelsAxis[BL] = wheel;
+            }
+            if (wheel.name == "backRightAxis") {
+                wheelsAxis[BR] = wheel;
+            }
+        }
+
+        JointSpring spring = new JointSpring();
+        spring.spring = 5000;
+        spring.damper = 100;
+        spring.targetPosition = 0.5f;
+
+        WheelFrictionCurve forwardFrCurve = new WheelFrictionCurve();
+        forwardFrCurve.extremumSlip = 1.4f;
+        forwardFrCurve.extremumValue = 1f;
+        forwardFrCurve.asymptoteSlip = 1.8f;
+        forwardFrCurve.asymptoteValue = 0.5f;
+        forwardFrCurve.stiffness = 1f;
+
+        WheelFrictionCurve sideFrCurve = new WheelFrictionCurve();
+        sideFrCurve.extremumSlip = 1.2f;
+        sideFrCurve.extremumValue = 1f;
+        sideFrCurve.asymptoteSlip = 1.5f;
+        sideFrCurve.asymptoteValue = 0.75f;
+        sideFrCurve.stiffness = 1f;
+
+        Mesh wheelMesh = Resources.Load<GameObject>("defaultWheel").transform.Find("wheelMesh").GetComponent<MeshFilter>().sharedMesh;
+        Mesh wheelRad = Resources.Load<GameObject>("defaultWheel").transform.Find("wheelRadius").GetComponent<MeshFilter>().sharedMesh;
+
+        float wheelRadius = 0;
+        foreach (Vector3 vertice in wheelRad.vertices)
+            if (vertice.x > wheelRadius)
+                wheelRadius = vertice.x;
+        for (int a = 0; a < 4; a++) {
+            GameObject wheel = new GameObject("wheelMesh");
+            wheelsMeshAxis[a] = new GameObject("wheelAxis");
+
+
+            wheel.AddComponent<MeshFilter>();
+            wheel.AddComponent<MeshRenderer>();
+
+            wheel.GetComponent<MeshRenderer>().sharedMaterial = defaultMaterial;
+            wheel.GetComponent<MeshFilter>().mesh = wheelMesh;
+
+            wheel.transform.parent = wheelsMeshAxis[a].transform;
+
+            wheelsMeshAxis[a].transform.parent = wheelsAxis[a].transform;
+            wheelsMeshAxis[a].transform.position = wheelsAxis[a].transform.position;
+            wheel.transform.position = wheelsMeshAxis[a].transform.position;
+
+            if(a%2==0)
+                wheel.transform.rotation *= Quaternion.AngleAxis(90, Vector3.forward);
+            else
+                wheel.transform.rotation *= Quaternion.AngleAxis(-90, Vector3.forward);
+
+            wheelsAxis[a].AddComponent<WheelCollider>();
+            
+            wheelsCollider[a] = wheelsAxis[a].GetComponent<WheelCollider>();
+            wheelsCollider[a].mass = 10;
+            wheelsCollider[a].radius = wheelRadius*1.1f;
+            wheelsCollider[a].wheelDampingRate = 0.8f;
+            wheelsCollider[a].suspensionDistance = 0.3f;
+            wheelsCollider[a].suspensionSpring = spring;
+            wheelsCollider[a].forwardFriction = forwardFrCurve;
+            wheelsCollider[a].sidewaysFriction = sideFrCurve;
+        }
+        //wheelsMesh[FL].transform.localRotation *= Quaternion.AngleAxis(90, Vector3.forward);
+        //wheelsMesh[FR].transform.localRotation *= Quaternion.AngleAxis(-90, Vector3.forward);
+        //wheelsMesh[BL].transform.localRotation *= Quaternion.AngleAxis(90, Vector3.forward);
+        //wheelsMesh[BR].transform.localRotation *= Quaternion.AngleAxis(-90, Vector3.forward);
+
+
+
+        //Physics.IgnoreCollision(GetComponentInChildren<Collider>(), wheelsFront[L].GetComponent<Collider>(), true);
+        //Physics.IgnoreCollision(GetComponentInChildren<Collider>(), wheelsFront[R].GetComponent<Collider>(), true);
+    }
+
+    void SetChasis() {
+
+        GameObject[] seats = FindGameObjectInChildWithTag(transform, "seat");
+        foreach (GameObject seat in seats) {
+            if (seat.name == "seatLeft") {
+                seatsBase[FL] = seat;
+            }
+            if (seat.name == "seatRight") {
+                seatsBase[FR] = seat;
+            }
+        }
+
+        Mesh seatMesh = Resources.Load<Mesh>("defaultSeat");
+
+        foreach(GameObject seat in seatsBase) {
+            seat.AddComponent<MeshFilter>();
+            seat.GetComponent<MeshFilter>().mesh = seatMesh;
+            seat.AddComponent<MeshRenderer>();
+            seat.GetComponent<MeshRenderer>().material = defaultMaterial;
+        }
+
+        rigidBody.centerOfMass = Vector3.zero;
+
+    }
+
 	// Update is called once per frame
 	void Update () {
-        front = transform.forward;
-        right = transform.right;
-
         if (!onRide) {
             if (Vector3.Distance(transform.position, player.transform.position) < minCarDistance && Input.GetButtonDown(ioKey)) {
-                playerMove.overridePosition(seats[L].transform);
+                playerMove.overridePosition(seatsBase[FL].transform);
                 playerMove.toggleColDetect();
                 playerMove.seat(transform.forward);
-                cameraCon.changeTarget(gameObject);
+                player.SendMessage("deactivate");
+                mainCamera.changeTarget(gameObject);
                 onRide = true;
             }
         }
         else {
-            move2();
+            move();
             if (Input.GetButtonDown(ioKey)) {
                 playerMove.freePosition( transform.position + (transform.right * outPositon) );
                 playerMove.toggleColDetect();
-                cameraCon.resetTarget();
+                player.SendMessage("activate");
+                mainCamera.resetTarget();
                 onRide = false;
             }
-
         }
 	}
-
-    private float Zspd = 0;
-    public float maxFrontSpd = 20f;
-    public float maxBackSpd = 13f;
-    public float accelForce = 8f;
-    public float brakeForce = 18f;
-    public float freeBrakeForce = 5f;
-
-    public float rotSpeed = 70;
-
     
-    void move2() {
-
-        JointMotor frMotorL = new JointMotor();
-        frMotorL.force = accelForce;
-        frMotorL.freeSpin = true;
-        frMotorL.targetVelocity = -maxFrontSpd;
-
-        JointMotor frMotorR = new JointMotor();
-        frMotorR.force = accelForce;
-        frMotorR.freeSpin = true;
-        frMotorR.targetVelocity = maxFrontSpd;
-        if (Input.GetButtonDown(accelKey)) {
-            //wheelTractionAxis[L].AddRelativeTorque(-Vector3.up*accelForce, ForceMode.Force);
-            //wheelTractionAxis[R].AddRelativeTorque(Vector3.up*accelForce, ForceMode.Force);
-
-            wheelsBack[L].GetComponent<HingeJoint>().motor = frMotorL;
-            wheelsBack[R].GetComponent<HingeJoint>().motor = frMotorR;
-            wheelsBack[L].GetComponent<HingeJoint>().useMotor = true;
-            wheelsBack[R].GetComponent<HingeJoint>().useMotor = true;
-        }
-        if (Input.GetButtonUp(accelKey)) {
-            wheelsBack[L].GetComponent<HingeJoint>().motor = zeroMotor;
-            wheelsBack[R].GetComponent<HingeJoint>().motor = zeroMotor;
-
-        }
-        /*else {
-            if (Input.GetButton(brakeKey)) {
-
-                wheelTractionAxis[L] = backwardMotor;
-                wheelTractionAxis[R] = backwardMotor;
-            }
-            else {
-                wheelTractionAxis[L] = zeroMotor;
-                wheelTractionAxis[R] = zeroMotor;
-            }
-        }*/
-        //wheelsBack[L].GetComponent<Rigidbody>().AddTorque(,);
-
-        float horSpd = Input.GetAxis("Horizontal");
-
-        wheelDirAxis[L].transform.rotation = Quaternion.AngleAxis((60 * horSpd), transform.up) * transform.rotation;
-        wheelDirAxis[R].transform.rotation = Quaternion.AngleAxis((60 * horSpd), transform.up) * transform.rotation;
-
-    }
     void move() {
         if (Input.GetButton(accelKey)) {
-            if(Zspd < maxFrontSpd)
-                Zspd += accelForce * Time.deltaTime;
+            wheelsCollider[BL].motorTorque = accelForwardForce;
+            wheelsCollider[BR].motorTorque = accelForwardForce;
+            wheelsCollider[BL].brakeTorque = 0;
+            wheelsCollider[BR].brakeTorque = 0;
         }
         else {
-            if (Input.GetButton(brakeKey)) {
-                if (Zspd > -maxBackSpd)
-                    Zspd -= brakeForce * Time.deltaTime;
+            if (Input.GetButton(reverseKey)) {
+                
+                wheelsCollider[BL].motorTorque = -accelBackForce;
+                wheelsCollider[BR].motorTorque = -accelBackForce;
+                wheelsCollider[BL].brakeTorque = 0;
+                wheelsCollider[BR].brakeTorque = 0;
             }
             else {
-                if(Zspd != 0) { 
-                    float Sign = Mathf.Sign(Zspd);
-                    Zspd -= Sign * freeBrakeForce * Time.deltaTime;
-                    if (Sign != Mathf.Sign(Zspd)) Zspd = 0;
+                if (Input.GetButton(brakeKey)) {
+                    wheelsCollider[BL].motorTorque = 0;
+                    wheelsCollider[BR].motorTorque = 0;
+                    wheelsCollider[BL].brakeTorque = brakeForce;
+                    wheelsCollider[BR].brakeTorque = brakeForce;
+                }
+                else {
+                    if (Input.GetButtonUp(accelKey) || Input.GetButtonUp(brakeKey) || Input.GetButtonUp(reverseKey)) {
+                        wheelsCollider[BL].motorTorque = 0;
+                        wheelsCollider[BR].motorTorque = 0;
+                        wheelsCollider[BL].brakeTorque = 0;
+                        wheelsCollider[BR].brakeTorque = 0;
+                    }
                 }
             }
         }
-        if (isGro)
-            moveSpeed.y = 0;
-        isGro = false;
-
         float horSpd = Input.GetAxis("Horizontal");
-        rigidBody.AddForceAtPosition(front * Zspd * speed, wheelsBack[0].transform.position);
-        rigidBody.AddForceAtPosition(front * Zspd * speed, wheelsBack[1].transform.position);
 
+        wheelsCollider[FL].steerAngle = (maxWheelDirAngle * horSpd);
+        wheelsCollider[FR].steerAngle = (maxWheelDirAngle * horSpd);
 
-        if(horSpd != 0.0f) {
-            transform.rotation *= Quaternion.AngleAxis(horSpd * rotSpeed * Time.deltaTime, Vector3.up);
+        Vector3 positionTmp;
+        Quaternion rotationTmp;
+
+        for(int a = 0; a < 4; a++) {
+            wheelsCollider[a].GetWorldPose(out positionTmp, out rotationTmp);
+            wheelsMeshAxis[a].transform.position = positionTmp;
+            wheelsMeshAxis[a].transform.rotation = rotationTmp;
         }
-
-
-        //rigidBody.AddForceAtPosition(right * horSpd * speed, wheelsFront[0].transform.position);
-        //rigidBody.AddForceAtPosition(right * horSpd * speed, wheelsFront[1].transform.position);
-
-        Debug.DrawRay(transform.position,velocityDirection,Color.red);
-        Debug.LogWarning(velocityDirection);
-        
-        
     }
-    public float groundToleranceAngle = 45;
-    private bool isGro = false;
-    private Vector3 velocityDirection = Vector3.up;
-    private void OnCollisionStay(Collision collision) {
-        //velocityDirection = collision.relativeVelocity;
-        //velocityDirection.y = 0;
-        //transform.rotation = Quaternion.LookRotation(-velocityDirection,transform.up);
-        foreach (ContactPoint hit in collision.contacts) {
-            if (Vector3.Angle(hit.normal, Vector3.up) < groundToleranceAngle) {
 
-                //Debug.LogWarning("we collided OO:");
-                isGro = true;
-                moveSpeed.y = 0;
-                groundNormal = hit.normal;
+    public GameObject[] FindGameObjectInChildWithTag(Transform parent, string tag) {
+        if(parent.childCount > 0) {
+            List<GameObject> childList = new List<GameObject>();
+            foreach (Transform tr in parent) {
+                if (tr.tag == tag) {
+                    childList.Add(tr.gameObject);
+                }
+                if (tr.childCount > 0) {
+                    foreach(GameObject obj in FindGameObjectInChildWithTag(tr, tag)) {
+                        childList.Add(obj);
+                    }
+                }
             }
+            return childList.ToArray();
         }
-           
+        else {
+            return null;
+        }
     }
 }
