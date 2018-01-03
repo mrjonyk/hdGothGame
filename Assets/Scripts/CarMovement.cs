@@ -91,13 +91,15 @@ public class CarMovement : MonoBehaviour {
         sideFrCurve.asymptoteValue = 0.75f;
         sideFrCurve.stiffness = 1f;
 
-        Mesh wheelMesh = Resources.Load<GameObject>("defaultWheel").transform.Find("wheelMesh").GetComponent<MeshFilter>().sharedMesh;
-        Mesh wheelRad = Resources.Load<GameObject>("defaultWheel").transform.Find("wheelRadius").GetComponent<MeshFilter>().sharedMesh;
+        GameObject wheelResource = Resources.Load<GameObject>("defaultWheel");
+        Mesh wheelMesh = wheelResource.transform.Find("wheelMesh").GetComponent<MeshFilter>().sharedMesh;
+        Mesh wheelRad = wheelResource.transform.Find("wheelRadius").GetComponent<MeshFilter>().sharedMesh;
 
-        float wheelRadius = 0;
-        foreach (Vector3 vertice in wheelRad.vertices)
-            if (vertice.x > wheelRadius)
-                wheelRadius = vertice.x;
+        float wheelRadius = wheelRad.bounds.size.x;//0;
+        Debug.LogWarning(wheelRad.bounds.size.ToString("F5"));
+        //foreach (Vector3 vertice in wheelRad.vertices)
+        //    if (vertice.x > wheelRadius)
+        //        wheelRadius = vertice.x;
         for (int a = 0; a < 4; a++) {
             GameObject wheel = new GameObject("wheelMesh");
             wheelsMeshAxis[a] = new GameObject("wheelAxis");
@@ -124,9 +126,9 @@ public class CarMovement : MonoBehaviour {
             
             wheelsCollider[a] = wheelsAxis[a].GetComponent<WheelCollider>();
             wheelsCollider[a].mass = 10;
-            wheelsCollider[a].radius = wheelRadius*1.1f;
+            wheelsCollider[a].radius = wheelRadius;
             wheelsCollider[a].wheelDampingRate = 0.8f;
-            wheelsCollider[a].suspensionDistance = 0.3f;
+            wheelsCollider[a].suspensionDistance = 0.1f;
             wheelsCollider[a].suspensionSpring = spring;
             wheelsCollider[a].forwardFriction = forwardFrCurve;
             wheelsCollider[a].sidewaysFriction = sideFrCurve;
