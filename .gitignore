@@ -1,9 +1,10 @@
-Assets/Models/**
-Assets/Sprites/**
-Library/**
-Temp/**
-Temp
+ProjectSettings
 Library
+Assets/Animations
+Assets/Materials
 Assets/Models
+Assets/Resources
+Assets/Scenes
 Assets/Sprites
 
+*.meta

@@ -84,11 +84,10 @@
     <Compile Include="Assets\Scripts\BasicMovement.cs" />
     <Compile Include="Assets\Scripts\CamController.cs" />
     <Compile Include="Assets\Scripts\CarMovement.cs" />
-    <Compile Include="Assets\Scripts\FootCollition.cs" />
+    <Compile Include="Assets\Scripts\ConstructionMod.cs" />
     <Compile Include="Assets\Scripts\movingCube.cs" />
     <Compile Include="Assets\Scripts\ParallelWallsSensor.cs" />
     <Compile Include="Assets\Scripts\Shield.cs" />
-    <Compile Include="Assets\Scripts\SimioController.cs" />
     <Compile Include="Assets\Scripts\WallJump.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
