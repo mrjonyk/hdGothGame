@@ -13,6 +13,18 @@ public class WallJump : MonoBehaviour {
     private Vector3 jumpDirection;
     public float friction = 20;
 
+    /*
+     Recordatorio
+
+        Implementar un sistema de estabilizacion de salto en la pared. 
+
+        este consiste en dar un grado de tolerancia en el movimiento del stick, de manera que haya un margen en el que no se mueva acia los lados cuando se esta saltando en la pared.
+         
+         pd. no olvidar idea conceptual de carrera de obtaculos implementando el salto en pared.
+         */
+
+
+
 
     // Use this for initialization
     void Start () {

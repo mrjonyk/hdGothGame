@@ -5,6 +5,18 @@ using UnityEngine.UI;
 
 public class ConstructionMod : MonoBehaviour {
 
+
+    /*
+     
+         Recordatorio
+
+        implementar 4 modos de selecion de objetivo, en espacio cubico, en espacio libre, pegandose a otros objetos, en espacio libre pero pegandoce al punto cubico cuando esta cerca del centro del cubo u objeto.
+
+        debe ser posible construir estirando los materiales ya puestos.
+        debe ser posible conostruir multiples objetos de un solo gesto (estirar cuando se agregan).
+        considerar pegar una de las caras con una superficie seleccionada. 
+        debe tener herramienta de cortar hoyos o formas (boolean tool).
+         */
     private string[] availableObjects = { "cube", "stair" };
     private GameObject[] blockList;
     private Sprite[] blockIcons;
